@@ -591,3 +591,164 @@ body {
   18% { opacity:0; transform:rotate(var(--ssr,-25deg)) translateX(110vw); }
   100%{ opacity:0; transform:rotate(var(--ssr,-25deg)) translateX(110vw); }
 }
+
+/* ============================================================
+   📱 RESPONSIVE MÓVIL — 480px y menos
+   ============================================================ */
+@media (max-width: 480px) {
+
+  /* ---- BASE ---- */
+  body { cursor: auto; }
+  #cursor, #flower-cursor { display: none !important; }
+  #progress-dots { display: none; }
+
+  /* ---- ESCENAS ---- */
+  .scene {
+    min-height: 100svh;          /* usa svh en móvil para evitar el salto del nav */
+    padding: 60px 20px 170px;
+    justify-content: flex-start;
+    padding-top: max(60px, 12vh);
+  }
+  #scene-final  { min-height: 110svh; }
+  #scene-extra  { min-height: 70svh;  }
+
+  /* ---- SOL más pequeño y reposicionado ---- */
+  #scene-intro::after {
+    width: 60px; height: 60px;
+    top: 30px; right: 5%;
+    box-shadow: 0 0 35px 15px rgba(255,230,0,.4);
+  }
+
+  /* ---- TEXTOS ---- */
+  .scene-text { max-width: 100%; padding: 0 4px; }
+
+  .scene-text p {
+    font-size: clamp(1rem, 4.5vw, 1.2rem);
+    line-height: 1.75;
+    margin-bottom: .45em;
+  }
+
+  .big-name {
+    font-size: clamp(2rem, 11vw, 3rem) !important;
+    margin-bottom: .25em;
+  }
+
+  /* ---- BOTONES ---- */
+  .btn-magic {
+    margin-top: 28px;
+    padding: 14px 36px;
+    font-size: .92rem;
+    letter-spacing: .08em;
+  }
+
+  /* ---- JARDÍN Y FLORES ---- */
+  /* Reducir el bottom offset para que no tapen el texto */
+  .garden { height: 160px; }
+  .ground-strip { height: 40px; }
+  .sunflower { bottom: 35px; }
+
+  /* Reducir tamaño de flores vía scale para no tocar el JS */
+  .sunflower { transform-origin: bottom center; }
+  .sunflower.bloomed { transform: scaleY(0.78) scaleX(0.78) !important; }
+
+  /* Las animaciones de bounce siguen funcionando, solo escala base */
+  @keyframes sway {
+    0%,100%{ transform: rotate(var(--lean,0deg)) scale(.78); }
+    30%{ transform: rotate(calc(var(--lean,0deg) - 2deg)) scale(.79); }
+    70%{ transform: rotate(calc(var(--lean,0deg) + 2deg)) scale(.79); }
+  }
+
+  /* ---- LUNA más pequeña ---- */
+  .moon { width: 46px; height: 46px; top: 40px; right: 5%; }
+
+  /* ---- ESTRELLAS — menos en móvil para performance ---- */
+  /* (Las extra se quitan via JS — ver script) */
+
+  /* ---- NUBES — más pequeñas ---- */
+  .cloud-svg { opacity: .4; }
+
+  /* ---- GOD RAYS — más sutiles ---- */
+  .god-ray { opacity: .5; }
+
+  /* ---- NIEBLA ---- */
+  .mist-layer   { height: 80px;  filter: blur(8px); }
+  .mist-layer-2 { height: 50px;  filter: blur(12px); }
+
+  /* ---- LUCIÉRNAGAS — más chicas ---- */
+  .firefly { width: 4px; height: 4px; }
+
+  /* ---- CORAZONES — más discretos ---- */
+  .floating-heart { --hfs: .8rem !important; }
+
+  /* ---- CONTADOR DE DÍAS ---- */
+  .days-counter { margin-top: 20px; }
+  .days-counter .days-number {
+    font-size: clamp(2.5rem, 16vw, 4rem);
+  }
+  .days-counter .days-label { font-size: .8rem; letter-spacing: .08em; }
+  .days-counter .days-date  { font-size: .72rem; }
+
+  /* ---- SCROLL HINT ---- */
+  .scroll-hint { bottom: 18px; }
+
+  /* ---- EXTRA MESSAGE ---- */
+  .extra-message p { font-size: clamp(1.1rem, 5.5vw, 1.6rem); }
+
+  /* ---- PARTÍCULAS — reducir opacidad en canvas ---- */
+  #particle-canvas { opacity: .75; }
+}
+
+/* ============================================================
+   📱 RESPONSIVE INTERMEDIO — 481px a 768px (tablet/iPhone grande)
+   ============================================================ */
+@media (min-width: 481px) and (max-width: 768px) {
+
+  body { cursor: auto; }
+  #cursor, #flower-cursor { display: none !important; }
+
+  .scene {
+    min-height: 100svh;
+    padding: 70px 28px 185px;
+  }
+
+  .scene-text p {
+    font-size: clamp(1.05rem, 3.2vw, 1.3rem);
+    line-height: 1.82;
+  }
+
+  .big-name { font-size: clamp(2.2rem, 8vw, 3.4rem) !important; }
+
+  .garden { height: 180px; }
+  .sunflower { bottom: 40px; }
+  .sunflower.bloomed { transform: scaleY(0.85) scaleX(0.85) !important; }
+
+  @keyframes sway {
+    0%,100%{ transform: rotate(var(--lean,0deg)) scale(.85); }
+    30%{ transform: rotate(calc(var(--lean,0deg) - 2.2deg)) scale(.86); }
+    70%{ transform: rotate(calc(var(--lean,0deg) + 2.2deg)) scale(.86); }
+  }
+
+  .moon { width: 55px; height: 55px; top: 50px; }
+  .days-counter .days-number { font-size: clamp(2.8rem, 12vw, 5rem); }
+  .extra-message p { font-size: clamp(1.15rem, 4vw, 1.8rem); }
+}
+
+/* ============================================================
+   🔒 FORZAR SCROLL SUAVE EN IOS
+   ============================================================ */
+@supports (-webkit-overflow-scrolling: touch) {
+  html { -webkit-overflow-scrolling: touch; }
+  .scene { min-height: -webkit-fill-available; }
+}
+
+/* ============================================================
+   🌙 PREFERENCIA DE MOVIMIENTO REDUCIDO
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .scene-text p { opacity: 1 !important; transform: none !important; }
+}

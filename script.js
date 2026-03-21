@@ -1,5 +1,12 @@
 "use strict";
 /* ============================================================
+   DETECCIÓN DE DISPOSITIVO
+   ============================================================ */
+const isMobile  = () => window.innerWidth <= 480;
+const isTablet  = () => window.innerWidth > 480 && window.innerWidth <= 768;
+const isTouchDevice = () => ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+/* ============================================================
    PARA SOFÍA — script.js
    Módulos: Cursor | Partículas | Flores | Scroll | UI | Cielo
    ============================================================ */
@@ -20,7 +27,9 @@ const CursorModule = (() => {
     el.style.left = cx + 'px'; el.style.top = cy + 'px';
     requestAnimationFrame(loop);
   }
-  function setFlower(on) { el?.classList.toggle('big', on); }
+  function setFlower(on) {
+    if (!isTouchDevice()) el?.classList.toggle('big', on);
+  }
   return { init, setFlower };
 })();
 
@@ -121,7 +130,8 @@ const ParticleModule = (() => {
   let amb = 0;
   function ambient() {
     amb++;
-    if (amb % 45 === 0) {
+    const interval = isMobile() ? 90 : isTablet() ? 65 : 45;
+    if (amb % interval === 0) {
       pts.push(new P(Math.random() * canvas.width, canvas.height + 10, {
         sp:.7, up:.7, mxs:2.5, mns:.8, d:.004, g:-.018, c:'rgba(255,215,0,'
       }));
@@ -266,7 +276,11 @@ const FlowerModule = (() => {
 
   // Configuración del jardín: [sceneId, count, minW, maxW, minH, maxH]
   // más flores en cada escena sucesiva
-  const GARDENS = [
+  // En móvil usamos menos flores para mejor rendimiento y que no tapen el texto
+  const MOBILE_COUNTS = [4, 5, 7, 10, 12, 14, 18, 10];
+  const TABLET_COUNTS = [5, 6, 9, 13, 16, 19, 26, 14];
+
+  const GARDENS_BASE = [
     { id: 'scene-intro',      count: 6,  minW: 55,  maxW: 85,  minH: 130, maxH: 190 },
     { id: 'scene-start',      count: 8,  minW: 60,  maxW: 95,  minH: 140, maxH: 200 },
     { id: 'scene-change',     count: 12, minW: 60,  maxW: 100, minH: 145, maxH: 210 },
@@ -276,6 +290,16 @@ const FlowerModule = (() => {
     { id: 'scene-final',      count: 38, minW: 70,  maxW: 130, minH: 165, maxH: 260 },
     { id: 'scene-extra',      count: 20, minW: 65,  maxW: 110, minH: 150, maxH: 220 },
   ];
+
+  const GARDENS = GARDENS_BASE.map((g, i) => ({
+    ...g,
+    count: isMobile() ? MOBILE_COUNTS[i] : isTablet() ? TABLET_COUNTS[i] : g.count,
+    // En móvil flores más pequeñas
+    minW: isMobile() ? g.minW * .65 : isTablet() ? g.minW * .8 : g.minW,
+    maxW: isMobile() ? g.maxW * .65 : isTablet() ? g.maxW * .8 : g.maxW,
+    minH: isMobile() ? g.minH * .65 : isTablet() ? g.minH * .8 : g.minH,
+    maxH: isMobile() ? g.maxH * .65 : isTablet() ? g.maxH * .8 : g.maxH,
+  }));
 
   function buildGardens() {
     GARDENS.forEach(({ id, count, minW, maxW, minH, maxH }, gi) => {
@@ -443,10 +467,11 @@ const SkyModule = (() => {
     addClouds('scene-start', 8);
     addClouds('scene-change', 6);
 
-    // Estrellas en escenas nocturnas
-    addStars('scene-confession', 50);
-    addStars('scene-final', 90);
-    addStars('scene-extra', 70);
+    // Estrellas en escenas nocturnas (menos en móvil para rendimiento)
+    const m = isMobile(), t = isTablet();
+    addStars('scene-confession', m ? 25 : t ? 38 : 50);
+    addStars('scene-final',      m ? 45 : t ? 65 : 90);
+    addStars('scene-extra',      m ? 35 : t ? 50 : 70);
 
     // Luna
     addMoon('scene-confession');
@@ -835,9 +860,10 @@ const FireflyModule = (() => {
     }
   }
   function init() {
-    addFireflies('scene-confession', 14);
-    addFireflies('scene-final', 28);
-    addFireflies('scene-extra', 18);
+    const m = isMobile(), t = isTablet();
+    addFireflies('scene-confession', m ? 6  : t ? 9  : 14);
+    addFireflies('scene-final',      m ? 12 : t ? 18 : 28);
+    addFireflies('scene-extra',      m ? 8  : t ? 12 : 18);
   }
   return { init };
 })();
@@ -908,10 +934,12 @@ const ShootingStarsModule = (() => {
   }
 
   function init() {
-    // varias por escena nocturna para que siempre haya alguna pasando
-    for (let i = 0; i < 5; i++) addShootingStar('scene-confession');
-    for (let i = 0; i < 8; i++) addShootingStar('scene-final');
-    for (let i = 0; i < 5; i++) addShootingStar('scene-extra');
+    const m = isMobile(), t = isTablet();
+    const c1 = m ? 3 : t ? 4 : 5;
+    const c2 = m ? 4 : t ? 6 : 8;
+    for (let i = 0; i < c1; i++) addShootingStar('scene-confession');
+    for (let i = 0; i < c2; i++) addShootingStar('scene-final');
+    for (let i = 0; i < c1; i++) addShootingStar('scene-extra');
   }
   return { init };
 })();
