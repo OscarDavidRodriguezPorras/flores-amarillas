@@ -442,6 +442,7 @@ const SkyModule = (() => {
     addClouds('scene-intro', 10);
     addClouds('scene-start', 8);
     addClouds('scene-change', 6);
+
     // Estrellas en escenas nocturnas
     addStars('scene-confession', 50);
     addStars('scene-final', 90);
@@ -617,15 +618,507 @@ const ProgressModule = (() => {
 document.addEventListener('DOMContentLoaded', () => {
   ProgressModule.init();
   CursorModule.init();
+  FlowerCursorModule.init();
   ParticleModule.init();
   SkyModule.init();
+  GodRaysModule.init();
+  MistModule.init();
+  FireflyModule.init();
+  ShootingStarsModule.init();
   FlowerModule.init();
+  HeartsModule.init();
+  TypewriterModule.init();
+  GlowLettersModule.init();
+  DaysCounterModule.init();
   ScrollModule.init();
+  ScrollSoundModule.init();
   UIModule.init();
 
-
+  // Bloom automático de la primera escena
   setTimeout(() => FlowerModule.bloomScene('scene-intro'), 500);
 
-
+  // Mini burst de bienvenida
   setTimeout(() => ParticleModule.burst(window.innerWidth/2, window.innerHeight*.7, 18), 900);
+
+  // Conectar confeti y sonido romántico al botón extra
+  const btnEx = document.getElementById('btn-extra');
+  if (btnEx) {
+    btnEx.addEventListener('click', (e) => {
+      const r = e.target.getBoundingClientRect();
+      const ox = r.left + r.width / 2;
+      const oy = r.top + r.height / 2;
+      ConfettiModule.launch(ox, oy, 90);
+      SoundModule.romanticChord();
+    }, { once: true });
+  }
+
+  // Campanita cuando brotan las flores de la escena final
+  const finalObs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      [0,300,600,900,1200].forEach(d =>
+        setTimeout(() => SoundModule.chime(523 + Math.random()*300, 0.04), d)
+      );
+      finalObs.disconnect();
+    }
+  }, { threshold: .2 });
+  const sf = document.getElementById('scene-final');
+  if (sf) finalObs.observe(sf);
 });
+
+
+// ============================================================
+// FLORECITA CURSOR — sigue el mouse con suavizado
+// ============================================================
+const FlowerCursorModule = (() => {
+  const el = document.getElementById('flower-cursor');
+  let mx = 0, my = 0, cx = 0, cy = 0;
+  function init() {
+    if (!el || window.innerWidth <= 600) { el && (el.style.display = 'none'); return; }
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    loop();
+  }
+  function loop() {
+    cx += (mx - cx) * .07; cy += (my - cy) * .07;
+    el.style.left = cx + 'px'; el.style.top = cy + 'px';
+    requestAnimationFrame(loop);
+  }
+  return { init };
+})();
+
+
+// ============================================================
+// SONIDO — Web Audio API (sin archivos externos)
+// ============================================================
+const SoundModule = (() => {
+  let ctx = null;
+  function getCtx() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    return ctx;
+  }
+
+  // Campanita delicada al aparecer una flor
+  function chime(freq = 880, vol = 0.06) {
+    try {
+      const ac = getCtx();
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.connect(gain); gain.connect(ac.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ac.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.5, ac.currentTime + .12);
+      osc.frequency.exponentialRampToValueAtTime(freq * .7, ac.currentTime + .6);
+      gain.gain.setValueAtTime(0, ac.currentTime);
+      gain.gain.linearRampToValueAtTime(vol, ac.currentTime + .03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + .8);
+      osc.start(ac.currentTime);
+      osc.stop(ac.currentTime + .8);
+    } catch(e) {}
+  }
+
+  // Viento suave (ruido blanco filtrado)
+  function wind(vol = 0.015, dur = 2.5) {
+    try {
+      const ac = getCtx();
+      const bufSize = ac.sampleRate * dur;
+      const buf = ac.createBuffer(1, bufSize, ac.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+      const src = ac.createBufferSource();
+      src.buffer = buf;
+      const filter = ac.createBiquadFilter();
+      filter.type = 'bandpass'; filter.frequency.value = 400; filter.Q.value = 0.5;
+      const gain = ac.createGain();
+      src.connect(filter); filter.connect(gain); gain.connect(ac.destination);
+      gain.gain.setValueAtTime(0, ac.currentTime);
+      gain.gain.linearRampToValueAtTime(vol, ac.currentTime + .4);
+      gain.gain.linearRampToValueAtTime(0, ac.currentTime + dur);
+      src.start(); src.stop(ac.currentTime + dur);
+    } catch(e) {}
+  }
+
+  // Acorde romántico al revelar el mensaje extra
+  function romanticChord() {
+    try {
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+        setTimeout(() => chime(f, 0.05), i * 120);
+      });
+    } catch(e) {}
+  }
+
+  return { chime, wind, romanticChord };
+})();
+
+
+// ============================================================
+// GOD RAYS — rayos de luz solar (escenas de día)
+// ============================================================
+const GodRaysModule = (() => {
+  function addRays(sceneId, count = 6) {
+    const scene = document.getElementById(sceneId);
+    if (!scene) return;
+    const container = document.createElement('div');
+    container.className = 'god-rays';
+    for (let i = 0; i < count; i++) {
+      const ray = document.createElement('div');
+      ray.className = 'god-ray';
+      const leftPct = 5 + (i / count) * 90;
+      const angle   = (Math.random() - .5) * 20;
+      const width   = 40 + Math.random() * 80;
+      const dur     = (4 + Math.random() * 4).toFixed(2);
+      const delay   = -(Math.random() * 5).toFixed(2);
+      ray.style.setProperty('--grl',  leftPct + '%');
+      ray.style.setProperty('--gra',  angle + 'deg');
+      ray.style.setProperty('--grw',  width + 'px');
+      ray.style.setProperty('--grd',  dur + 's');
+      ray.style.setProperty('--grdd', delay + 's');
+      container.appendChild(ray);
+    }
+    scene.prepend(container);
+  }
+
+  function init() {
+    addRays('scene-intro', 8);
+    addRays('scene-start', 6);
+    addRays('scene-change', 4);
+  }
+  return { init };
+})();
+
+
+// ============================================================
+// NIEBLA — jardín nocturno
+// ============================================================
+const MistModule = (() => {
+  function addMist(sceneId) {
+    const scene = document.getElementById(sceneId);
+    if (!scene) return;
+    const m1 = document.createElement('div'); m1.className = 'mist-layer';
+    const m2 = document.createElement('div'); m2.className = 'mist-layer-2';
+    scene.appendChild(m1); scene.appendChild(m2);
+  }
+  function init() {
+    addMist('scene-confession');
+    addMist('scene-final');
+    addMist('scene-extra');
+  }
+  return { init };
+})();
+
+
+// ============================================================
+// LUCIÉRNAGAS
+// ============================================================
+const FireflyModule = (() => {
+  function addFireflies(sceneId, count = 18) {
+    const scene = document.getElementById(sceneId);
+    if (!scene) return;
+    for (let i = 0; i < count; i++) {
+      const ff = document.createElement('div');
+      ff.className = 'firefly';
+      const x = 5 + Math.random() * 90;
+      const y = 10 + Math.random() * 75;
+      const rnd = () => ((Math.random() - .5) * 120).toFixed(0) + 'px';
+      const dur  = (6 + Math.random() * 6).toFixed(2);
+      const gDur = (1.5 + Math.random() * 2).toFixed(2);
+      const dd   = -(Math.random() * 8).toFixed(2);
+      const gdd  = -(Math.random() * 3).toFixed(2);
+      ff.style.cssText = `
+        left:${x}%; top:${y}%;
+        --ffdur:${dur}s; --ffdd:${dd}s;
+        --ffgd:${gDur}s; --ffgdd:${gdd}s;
+        --ffx1:${rnd()}; --ffy1:${rnd()};
+        --ffx2:${rnd()}; --ffy2:${rnd()};
+        --ffx3:${rnd()}; --ffy3:${rnd()};
+        --ffx4:${rnd()}; --ffy4:${rnd()};
+      `;
+      scene.appendChild(ff);
+    }
+  }
+  function init() {
+    addFireflies('scene-confession', 14);
+    addFireflies('scene-final', 28);
+    addFireflies('scene-extra', 18);
+  }
+  return { init };
+})();
+
+
+// ============================================================
+// CORAZONES FLOTANTES
+// ============================================================
+const HeartsModule = (() => {
+  const HEARTS = ['💛','💛','🌻','✨','💛','🤍'];
+  let started = false;
+
+  function spawnHeart() {
+    const h = document.createElement('div');
+    h.className = 'floating-heart';
+    h.textContent = HEARTS[Math.random() * HEARTS.length | 0];
+    const left  = (Math.random() * 90 + 5).toFixed(1);
+    const dur   = (7 + Math.random() * 6).toFixed(2);
+    const rot   = ((Math.random() - .5) * 30).toFixed(1);
+    const dx    = ((Math.random() - .5) * 80).toFixed(0);
+    const fs    = (.75 + Math.random() * .7).toFixed(2);
+    h.style.cssText = `
+      left:${left}%; bottom:5%;
+      --hfd:${dur}s; --hfdd:0s;
+      --hfr:${rot}deg; --hfx:${dx}px; --hfs:${fs}rem;
+    `;
+    document.body.appendChild(h);
+    setTimeout(() => h.remove(), (parseFloat(dur) + 1) * 1000);
+  }
+
+  function init() {
+    // empiezan en scene-confession
+    const obs = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !started) {
+        started = true;
+        for (let i = 0; i < 6; i++) setTimeout(spawnHeart, i * 800);
+        setInterval(spawnHeart, 3000);
+        obs.disconnect();
+      }
+    }, { threshold: .2 });
+    const el = document.getElementById('scene-confession');
+    if (el) obs.observe(el);
+  }
+  return { init };
+})();
+
+
+// ============================================================
+// ESTRELLAS FUGACES
+// ============================================================
+const ShootingStarsModule = (() => {
+  function addShootingStar(sceneId) {
+    const scene = document.getElementById(sceneId);
+    if (!scene) return;
+    const ss = document.createElement('div');
+    ss.className = 'shooting-star';
+    const top   = (5 + Math.random() * 40).toFixed(1);
+    const width = (80 + Math.random() * 120).toFixed(0);
+    const angle = (-15 - Math.random() * 20).toFixed(1);
+    const dur   = (6 + Math.random() * 8).toFixed(2);
+    const delay = -(Math.random() * 10).toFixed(2);
+    ss.style.setProperty('--sst',  top + '%');
+    ss.style.setProperty('--ssw',  width + 'px');
+    ss.style.setProperty('--ssr',  angle + 'deg');
+    ss.style.setProperty('--ssd',  dur + 's');
+    ss.style.setProperty('--ssdd', delay + 's');
+    scene.appendChild(ss);
+  }
+
+  function init() {
+    // varias por escena nocturna para que siempre haya alguna pasando
+    for (let i = 0; i < 5; i++) addShootingStar('scene-confession');
+    for (let i = 0; i < 8; i++) addShootingStar('scene-final');
+    for (let i = 0; i < 5; i++) addShootingStar('scene-extra');
+  }
+  return { init };
+})();
+
+
+// ============================================================
+// TYPEWRITER — escritura animada en textos clave
+// ============================================================
+const TypewriterModule = (() => {
+  function wrapTypewriter(el, stepsPerChar = 1) {
+    const text = el.textContent;
+    el.textContent = '';
+    const span = document.createElement('span');
+    span.className = 'typewriter';
+    span.textContent = text;
+    const charCount = text.length;
+    const dur = (charCount * 0.055).toFixed(2);
+    span.style.setProperty('--tw-dur', dur + 's');
+    span.style.setProperty('--tw-steps', charCount);
+    span.style.setProperty('--tw-w', '100%');
+    el.appendChild(span);
+    return span;
+  }
+
+  function activateTypewriter(span) {
+    if (span && !span.classList.contains('typing')) {
+      span.classList.add('typing');
+    }
+  }
+
+  // Aplica typewriter a los big-name y los p.emphasis en escenas de confesión y final
+  function init() {
+    const targets = document.querySelectorAll(
+      '#scene-confession .big-name, #scene-final .big-name'
+    );
+    const wrapped = [];
+    targets.forEach(el => {
+      const span = wrapTypewriter(el);
+      wrapped.push({ el, span });
+    });
+
+    // Activar al entrar en escena
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const match = wrapped.find(w => e.target.contains(w.el) || e.target === w.el);
+          if (match) setTimeout(() => activateTypewriter(match.span), 400);
+          // También activa otros en la misma sección
+          wrapped.forEach(w => {
+            if (e.target.contains(w.el)) {
+              setTimeout(() => activateTypewriter(w.span), 400);
+            }
+          });
+        }
+      });
+    }, { threshold: .3 });
+
+    targets.forEach(el => {
+      const section = el.closest('.scene');
+      if (section) obs.observe(section);
+    });
+  }
+  return { init };
+})();
+
+
+// ============================================================
+// LETRAS BRILLANTES — hover letra por letra en énfasis
+// ============================================================
+const GlowLettersModule = (() => {
+  function wrap(el) {
+    const text = el.textContent;
+    el.textContent = '';
+    [...text].forEach(char => {
+      if (char === ' ') {
+        el.appendChild(document.createTextNode(' '));
+      } else {
+        const s = document.createElement('span');
+        s.className = 'glow-letter';
+        s.textContent = char;
+        el.appendChild(s);
+      }
+    });
+  }
+  function init() {
+    document.querySelectorAll(
+      '#scene-confession .emphasis, #scene-final .emphasis, #scene-final .big-name'
+    ).forEach(wrap);
+  }
+  return { init };
+})();
+
+
+// ============================================================
+// CONTADOR DE DÍAS
+// ============================================================
+const DaysCounterModule = (() => {
+  const START_DATE = new Date('2025-12-03T00:00:00');
+
+  function getDays() {
+    const now  = new Date();
+    const diff = now - START_DATE;
+    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+  }
+
+  function animateNumber(el, target, duration = 2000) {
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3); // ease-out-cubic
+      el.textContent = Math.round(ease * target);
+      if (t < 1) requestAnimationFrame(step);
+      else el.textContent = target;
+    }
+    requestAnimationFrame(step);
+  }
+
+  function init() {
+    const counter = document.getElementById('days-counter');
+    const numEl   = document.getElementById('days-number');
+    if (!counter || !numEl) return;
+
+    const days = getDays();
+
+    const obs = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        counter.classList.add('visible');
+        setTimeout(() => animateNumber(numEl, days, 2200), 600);
+        obs.disconnect();
+      }
+    }, { threshold: .3 });
+    obs.observe(counter);
+  }
+  return { init };
+})();
+
+
+// ============================================================
+// CONFETI — explosión al presionar el botón extra
+// ============================================================
+const ConfettiModule = (() => {
+  const COLORS = ['#FFD700','#FFC200','#FFE566','#FF9AA2','#FFB7B2','#FFDAC1','#E2F0CB','#B5EAD7','#C7CEEA'];
+  const SHAPES = [
+    { w:8, h:12, r:2 }, { w:10, h:5, r:50 }, { w:7, h:7, r:50 },
+    { w:12, h:4, r:1  }, { w:5, h:15, r:1  },
+  ];
+
+  function launch(originX, originY, count = 80) {
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        const shape = SHAPES[Math.random() * SHAPES.length | 0];
+        const color = COLORS[Math.random() * COLORS.length | 0];
+        const dx    = ((Math.random() - .5) * window.innerWidth * .8).toFixed(0);
+        const dy    = (200 + Math.random() * window.innerHeight * .7).toFixed(0);
+        const rot   = (360 + Math.random() * 720).toFixed(0);
+        const dur   = (2 + Math.random() * 1.5).toFixed(2);
+        const delay = (Math.random() * .4).toFixed(2);
+        piece.style.cssText = `
+          left:${originX}px; top:${originY}px;
+          --cw:${shape.w}px; --ch:${shape.h}px; --cr:${shape.r}px;
+          --cc:${color};
+          --cfx:${dx}px; --cfy:${dy}px; --cfr:${rot}deg;
+          --cfd:${dur}s; --cfdd:${delay}s;
+        `;
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), (parseFloat(dur) + parseFloat(delay) + .5) * 1000);
+      }, Math.random() * 200);
+    }
+  }
+  return { launch };
+})();
+
+
+// ============================================================
+// SONIDO AL SCROLL — viento suave al cambiar escena
+// ============================================================
+const ScrollSoundModule = (() => {
+  let lastScene = '';
+  const FREQS = {
+    'scene-intro': 880,
+    'scene-start': 784,
+    'scene-change': 698,
+    'scene-growth': 659,
+    'scene-sunset': 587,
+    'scene-confession': 523,
+    'scene-final': 440,
+    'scene-extra': 392,
+  };
+
+  function init() {
+    const SCENES = Object.keys(FREQS);
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting && e.target.id !== lastScene) {
+          lastScene = e.target.id;
+          SoundModule.wind(0.012, 2);
+          const freq = FREQS[e.target.id];
+          if (freq) setTimeout(() => SoundModule.chime(freq, 0.04), 300);
+        }
+      });
+    }, { threshold: .5 });
+    SCENES.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) obs.observe(el);
+    });
+  }
+  return { init };
+})();
