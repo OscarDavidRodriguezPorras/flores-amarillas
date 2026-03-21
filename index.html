@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Para Sofía 🌻</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+  <!-- Cursor personalizado -->
+  <div id="cursor"></div>
+
+  <!-- Canvas partículas -->
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- Puntos de progreso -->
+  <nav id="progress-dots" aria-label="Progreso"></nav>
+
+  <!-- ══════════════════════════════════════════
+       🌞  ESCENA 1 — DÍA CLARO
+       ══════════════════════════════════════════ -->
+  <section id="scene-intro" class="scene">
+    <div class="scene-text">
+      <p class="big-name">Sofía…</p>
+      <p>Hay cosas que no sé decir <span class="emphasis">fácilmente</span>…</p>
+      <p>Pero hoy… quiero intentarlo.</p>
+    </div>
+    <button id="btn-start" class="btn-magic">Haz clic, Sofía…</button>
+    <div class="scroll-hint" aria-hidden="true">
+      <div class="scroll-arrow"></div>
+      <span>scroll</span>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       🌤  ESCENA 2 — TARDE CLARA
+       ══════════════════════════════════════════ -->
+  <section id="scene-start" class="scene">
+    <div class="scene-text">
+      <p>No siempre encuentro las palabras correctas…</p>
+      <p>Pero eso no significa que no <span class="emphasis">sienta mucho</span>.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       🌇  ESCENA 3 — TARDE CÁLIDA
+       ══════════════════════════════════════════ -->
+  <section id="scene-change" class="scene">
+    <div class="scene-text">
+      <p>Porque aunque no lo diga todo…</p>
+      <p>hay algo en mí que <span class="emphasis">empezó a cambiar</span></p>
+      <p>desde que llegaste.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       🌻  ESCENA 4 — PRE-ATARDECER DORADO
+       ══════════════════════════════════════════ -->
+  <section id="scene-growth" class="scene">
+    <div class="scene-text">
+      <p>Empezó con detalles pequeños…</p>
+      <p>con momentos simples…</p>
+      <p>con <span class="emphasis">sonrisas que no esperaba</span>…</p>
+      <p>Y sin darme cuenta…</p>
+      <p>te fuiste volviendo <span class="emphasis">importante</span>.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       🌅  ESCENA 5 — ATARDECER NARANJA
+       ══════════════════════════════════════════ -->
+  <section id="scene-sunset" class="scene">
+    <div class="scene-text">
+      <p>De esas personas que no quieres perder…</p>
+      <p>de esas que te <span class="emphasis">cambian los días</span>…</p>
+      <p>sin siquiera intentarlo.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       🌙  ESCENA 6 — CREPÚSCULO
+       ══════════════════════════════════════════ -->
+  <section id="scene-confession" class="scene">
+    <div class="scene-text">
+      <p class="big-name">Sofía…</p>
+      <p>tal vez no siempre lo digo…</p>
+      <p>pero me importas <span class="emphasis">más de lo que imaginas</span>.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       🌟  ESCENA 7 — NOCHE · JARDÍN ILUMINADO
+       ══════════════════════════════════════════ -->
+  <section id="scene-final" class="scene">
+    <div class="scene-text">
+      <p class="big-name">Para ti 🌻</p>
+      <p>Estas flores amarillas son para ti…</p>
+      <p>porque si algo tengo claro…</p>
+      <p>es que <span class="emphasis">me haces feliz</span>.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       💌  ESCENA 8 — EXTRA DESBLOQUEABLE
+       ══════════════════════════════════════════ -->
+  <section id="scene-extra" class="scene">
+    <button id="btn-extra" class="btn-magic">Una última cosa…</button>
+    <div id="extra-message" class="extra-message" aria-live="polite">
+      <p>Gracias por estar en mi vida, Sofía <span class="heart-gold">💛</span></p>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>

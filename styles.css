@@ -1,0 +1,389 @@
+/* ============================================================
+   PARA SOFÍA — FLORES AMARILLAS
+   styles.css  |  Día → Atardecer → Noche
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
+
+:root {
+  --petal-1: #FFD700;
+  --petal-2: #FFC200;
+  --petal-3: #FFE566;
+  --petal-4: #F5A623;
+  --center-dk: #5C3D11;
+  --center-md: #8B5E1A;
+  --center-lt: #C8860A;
+  --stem: #3A7A2A;
+  --leaf: #2D6A1E;
+  --white-soft: #fdf6e3;
+  --text-glow: rgba(255, 215, 0, 0.5);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
+body {
+  font-family: 'Lora', Georgia, serif;
+  color: #1a1a2e;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ---- CURSOR ---- */
+#cursor {
+  position: fixed;
+  width: 14px; height: 14px;
+  background: #FFD700;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: width .2s, height .2s, background .3s;
+}
+#cursor.big { width:28px; height:28px; background:#FFC200; opacity:.7; }
+@media(max-width:600px){ #cursor{display:none;} body{cursor:auto;} }
+
+/* ---- CANVAS ---- */
+#particle-canvas {
+  position: fixed; inset:0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ============================================================
+   ESCENAS
+   ============================================================ */
+.scene {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px 200px;
+  overflow: hidden;
+}
+
+/* DÍA — azul claro y brillante */
+#scene-intro {
+  background: linear-gradient(180deg, #87CEEB 0%, #B8DFF5 55%, #D4EEF8 100%);
+}
+/* Sol */
+#scene-intro::after {
+  content: '';
+  position: absolute;
+  top: 55px; right: 10%;
+  width: 90px; height: 90px;
+  background: radial-gradient(circle, #FFF5A0 0%, #FFD700 45%, rgba(255,215,0,0) 70%);
+  border-radius: 50%;
+  box-shadow: 0 0 60px 30px rgba(255,230,0,.4);
+  animation: sun-pulse 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+@keyframes sun-pulse {
+  0%,100%{ box-shadow:0 0 60px 30px rgba(255,230,0,.4); transform:scale(1); }
+  50%{ box-shadow:0 0 90px 50px rgba(255,230,0,.6); transform:scale(1.05); }
+}
+
+/* TARDE CLARA */
+#scene-start {
+  background: linear-gradient(180deg, #5BA8D8 0%, #87CEEB 40%, #C0DDF0 80%, #D8EEFA 100%);
+}
+
+/* TARDE CÁLIDA */
+#scene-change {
+  background: linear-gradient(180deg, #4A7FC0 0%, #70A8D0 30%, #E8B060 70%, #F0CC80 100%);
+}
+
+/* PRE-ATARDECER */
+#scene-growth {
+  background: linear-gradient(180deg, #D06020 0%, #E88030 30%, #F5A840 55%, #F8C860 80%, #F5E080 100%);
+}
+
+/* ATARDECER */
+#scene-sunset {
+  background: linear-gradient(180deg, #A03015 0%, #D05525 25%, #E87830 50%, #F0A040 70%, #F5CC55 90%, #F8E070 100%);
+}
+
+/* CREPÚSCULO */
+#scene-confession {
+  background: linear-gradient(180deg, #180830 0%, #381865 25%, #782840 50%, #C04520 70%, #E07028 88%, #F0A038 100%);
+}
+
+/* NOCHE — JARDÍN ILUMINADO */
+#scene-final {
+  background: linear-gradient(180deg, #04020E 0%, #080618 20%, #10103A 40%, #180F30 60%, #130B00 80%, #1A1200 100%);
+  min-height: 130vh;
+}
+
+#scene-extra {
+  background: linear-gradient(180deg, #04020E 0%, #080618 60%, #0C0A00 100%);
+  min-height: 70vh;
+}
+
+/* ============================================================
+   NUBES decorativas
+   ============================================================ */
+.cloud-svg {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+  opacity: .55;
+  animation: cloud-move var(--cdur,50s) linear var(--cdelay,0s) infinite;
+  top: var(--ctop, 12%);
+}
+@keyframes cloud-move {
+  0%{ transform: translateX(-300px); opacity:0; }
+  5%{ opacity:.55; }
+  95%{ opacity:.55; }
+  100%{ transform: translateX(calc(100vw + 300px)); opacity:0; }
+}
+
+/* ============================================================
+   TEXTO
+   ============================================================ */
+.scene-text {
+  text-align: center;
+  max-width: 580px;
+  position: relative;
+  z-index: 20;
+}
+.scene-text p {
+  font-family: 'Lora', serif;
+  font-size: clamp(1.05rem, 2.5vw, 1.45rem);
+  line-height: 1.95;
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity .9s ease, transform .9s ease;
+  margin-bottom: .35em;
+}
+.scene-text p.visible { opacity:1; transform:translateY(0); }
+.scene-text p:nth-child(2){ transition-delay:.3s; }
+.scene-text p:nth-child(3){ transition-delay:.6s; }
+.scene-text p:nth-child(4){ transition-delay:.9s; }
+.scene-text p:nth-child(5){ transition-delay:1.2s; }
+
+#scene-intro  .scene-text p,
+#scene-start  .scene-text p { color: #0d2a5a; }
+#scene-change .scene-text p { color: #0d2044; }
+#scene-growth .scene-text p { color: #3a1400; }
+#scene-sunset .scene-text p { color: #2a0800; }
+#scene-confession .scene-text p { color: #fdf0d0; text-shadow:0 2px 12px rgba(0,0,0,.6); }
+#scene-final  .scene-text p,
+#scene-extra  .scene-text p { color: #fdf6e3; text-shadow:0 0 16px rgba(255,215,0,.4); }
+
+.big-name {
+  font-family: 'Playfair Display', serif !important;
+  font-size: clamp(2.5rem,7vw,4.5rem) !important;
+  font-style: italic !important;
+  display: block;
+  margin-bottom: .2em;
+}
+#scene-intro .big-name { color:#0d2a6a !important; }
+#scene-confession .big-name,
+#scene-final .big-name { color:#FFD700 !important; text-shadow:0 0 30px rgba(255,215,0,.6) !important; }
+
+.emphasis { font-style: italic; }
+#scene-intro .emphasis,
+#scene-start .emphasis { color:#1a4a9a; }
+#scene-growth .emphasis,
+#scene-sunset .emphasis { color:#6a2000; }
+#scene-confession .emphasis { color:#FFE566; }
+#scene-final .emphasis { color:#FFE566; text-shadow:0 0 20px rgba(255,215,0,.6); }
+
+/* ============================================================
+   JARDÍN — contenedor de flores en la base
+   ============================================================ */
+.garden {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 210px;
+  pointer-events: none;
+  z-index: 10;
+  overflow: visible;
+}
+
+/* suelo verde */
+.ground-strip {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 55px;
+  border-radius: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+#scene-intro  .ground-strip,
+#scene-start  .ground-strip { background: linear-gradient(to top, #2a6a1a, #3a8a2a); }
+#scene-change .ground-strip { background: linear-gradient(to top, #2a6a1a, #4a8a30); }
+#scene-growth .ground-strip { background: linear-gradient(to top, #1e5a14, #2e7a1e); }
+#scene-sunset .ground-strip { background: linear-gradient(to top, #1a4a10, #2a6a18); }
+#scene-confession .ground-strip { background: linear-gradient(to top, #142814, #1e4a1e); }
+#scene-final  .ground-strip { background: linear-gradient(to top, #080e08, #0f200f); }
+#scene-extra  .ground-strip { background: linear-gradient(to top, #060a06, #0c180c); }
+
+/* ============================================================
+   GIRASOL / FLOR
+   ============================================================ */
+.sunflower {
+  position: absolute;
+  bottom: 50px;
+  transform-origin: bottom center;
+  pointer-events: all;
+  cursor: none;
+  transition: opacity 1s cubic-bezier(.34,1.56,.64,1), transform 1s cubic-bezier(.34,1.56,.64,1);
+  opacity: 0;
+  transform: scaleY(0) scaleX(0.2);
+  animation: sway var(--sw, 4.2s) ease-in-out var(--sd, 0s) infinite;
+}
+.sunflower.bloomed { opacity:1; transform:scaleY(1) scaleX(1); }
+@keyframes sway {
+  0%,100%{ transform:rotate(var(--lean,0deg)) scale(1); }
+  30%{ transform:rotate(calc(var(--lean,0deg) - 2.5deg)) scale(1.01); }
+  70%{ transform:rotate(calc(var(--lean,0deg) + 2.5deg)) scale(1.01); }
+}
+.sunflower.interacting { animation: flower-bounce .55s ease-out forwards !important; }
+@keyframes flower-bounce {
+  0%{  transform:rotate(var(--lean,0deg)) scale(1); }
+  25%{ transform:rotate(calc(var(--lean,0deg) - 7deg)) scale(1.15); }
+  55%{ transform:rotate(calc(var(--lean,0deg) + 5deg)) scale(1.09); }
+  80%{ transform:rotate(calc(var(--lean,0deg) - 2deg)) scale(1.03); }
+  100%{transform:rotate(var(--lean,0deg)) scale(1); }
+}
+
+/* Brillo nocturno */
+#scene-final .sunflower,
+#scene-extra .sunflower {
+  filter: drop-shadow(0 0 10px rgba(255,215,0,.7)) drop-shadow(0 0 25px rgba(255,180,0,.35));
+}
+
+/* ============================================================
+   LUNA y ESTRELLAS
+   ============================================================ */
+.moon {
+  position: absolute;
+  top: 70px; right: 9%;
+  width: 68px; height: 68px;
+  background: radial-gradient(circle at 38% 38%, #fffce8, #f5d060);
+  border-radius: 50%;
+  box-shadow: 0 0 35px 12px rgba(255,220,80,.35), 0 0 80px 24px rgba(255,200,50,.18);
+  animation: mglow 5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 2.5s ease;
+}
+.moon.visible { opacity:1; }
+@keyframes mglow {
+  0%,100%{ box-shadow:0 0 35px 12px rgba(255,220,80,.35),0 0 80px 24px rgba(255,200,50,.18); }
+  50%{ box-shadow:0 0 55px 22px rgba(255,220,80,.55),0 0 120px 35px rgba(255,200,50,.3); }
+}
+.star {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: twinkle var(--tdur,3s) ease-in-out var(--tdelay,0s) infinite;
+}
+@keyframes twinkle {
+  0%,100%{ opacity:.1; transform:scale(1); }
+  50%{ opacity:1; transform:scale(1.5); }
+}
+
+/* ============================================================
+   BOTONES
+   ============================================================ */
+.btn-magic {
+  margin-top: 44px;
+  padding: 16px 54px;
+  background: transparent;
+  border: 1.5px solid currentColor;
+  font-family: 'Lora', serif;
+  font-size: 1rem;
+  letter-spacing: .12em;
+  cursor: none;
+  border-radius: 50px;
+  position: relative;
+  overflow: hidden;
+  transition: all .4s ease;
+  z-index: 20;
+}
+#scene-intro .btn-magic { color:#0d2a6a; }
+#scene-final .btn-magic,
+#scene-extra .btn-magic { color:#FFD700; }
+.btn-magic::before {
+  content:''; position:absolute; inset:0;
+  background:currentColor;
+  transform:scaleX(0); transform-origin:left;
+  transition:transform .4s ease; z-index:-1;
+}
+.btn-magic:hover::before { transform:scaleX(1); }
+.btn-magic:hover { color:#fff; box-shadow:0 0 30px rgba(255,215,0,.3); outline:none; }
+#scene-intro .btn-magic:hover { color:#fff; }
+
+/* ============================================================
+   EXTRA
+   ============================================================ */
+.extra-message {
+  opacity:0; transform:translateY(20px) scale(.95);
+  transition:opacity 1s ease, transform 1s ease;
+  text-align:center; max-width:500px;
+}
+.extra-message.revealed { opacity:1; transform:translateY(0) scale(1); }
+.extra-message p {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.3rem,3.5vw,2.2rem);
+  font-style:italic;
+  color:#FFD700;
+  line-height:1.8;
+  text-shadow:0 0 35px rgba(255,215,0,.55);
+}
+.heart-gold { display:inline-block; color:#FFD700; animation:hb 1.4s ease-in-out infinite; }
+@keyframes hb {
+  0%,100%{transform:scale(1);}
+  15%{transform:scale(1.3);}
+  30%{transform:scale(1);}
+  45%{transform:scale(1.18);}
+  60%{transform:scale(1);}
+}
+
+/* ---- SCROLL HINT ---- */
+.scroll-hint {
+  position:absolute; bottom:28px; left:50%;
+  transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  opacity:.5; animation:sfade 2.5s ease-in-out infinite;
+  z-index:20; pointer-events:none;
+}
+.scroll-hint span { font-size:.65rem; letter-spacing:.2em; text-transform:uppercase; color:#0d2a5a; }
+.scroll-arrow { width:1px; height:38px; background:linear-gradient(to bottom,transparent,#0d2a5a); animation:sarrow 2s ease-in-out infinite; }
+@keyframes sfade{ 0%,100%{opacity:.25;} 50%{opacity:.65;} }
+@keyframes sarrow{
+  0%{transform:scaleY(0);transform-origin:top;}
+  50%{transform:scaleY(1);transform-origin:top;}
+  51%{transform:scaleY(1);transform-origin:bottom;}
+  100%{transform:scaleY(0);transform-origin:bottom;}
+}
+
+/* ---- PROGRESS DOTS ---- */
+#progress-dots {
+  position:fixed; right:18px; top:50%;
+  transform:translateY(-50%);
+  display:flex; flex-direction:column; gap:10px;
+  z-index:200; pointer-events:none;
+}
+.dot { width:6px; height:6px; border-radius:50%; background:rgba(100,100,100,.3); transition:all .3s; }
+.dot.active { background:#FFD700; transform:scale(1.6); box-shadow:0 0 8px rgba(255,215,0,.5); }
+@media(max-width:600px){ #progress-dots{display:none;} }
+
+/* ---- PÉTALOS FLOTANTES ---- */
+.fp {
+  position:fixed; pointer-events:none; z-index:50; opacity:0;
+  animation:fpanim var(--fpd,10s) linear var(--fpdd,0s) infinite;
+  font-size: var(--fps, 1rem);
+}
+@keyframes fpanim {
+  0%{opacity:0; transform:translateY(108vh) rotate(0deg) translateX(0);}
+  8%{opacity:.5;}
+  92%{opacity:.3;}
+  100%{opacity:0; transform:translateY(-8vh) rotate(540deg) translateX(var(--fpx,0px));}
+}
