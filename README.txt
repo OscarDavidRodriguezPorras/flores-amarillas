@@ -1,4 +1,4 @@
-# 🌻 Flores Amarillas
+# 🌻 Para Sofía — Flores Amarillas
 
 Una página web romántica e interactiva creada con HTML, CSS y JavaScript puro.  
 Cuenta una historia visual que va del **día al atardecer y a la noche**, con un jardín de girasoles que crece mientras el usuario hace scroll.
