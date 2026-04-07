@@ -151,5 +151,3 @@ En `script.js`, busca el array `petalColors` dentro de `makeSunflower()`.
 - Sin frameworks. Sin dependencias. Sin instalación.
 
 ---
-
-*Hecho con 💛 para Sofía*
